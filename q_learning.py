@@ -9,7 +9,10 @@ actions = [0, 1]
 episodes = 200
 alpha = 0.1
 gamma = 0.9
+
 epsilon = 0.3
+epsilon_decay = 0.995
+epsilon_min = 0.05
 
 best_reward = float("-inf")
 
@@ -39,17 +42,21 @@ for episode in range(episodes):
         state = next_state
         total_reward += reward
 
+    env.close()
+
     best_reward = max(best_reward, total_reward)
+    epsilon = max(epsilon_min, epsilon * epsilon_decay)
+
     print(
-        f"Episode {episode}: Total Reward = {total_reward}, Best Reward = {best_reward}"
+        f"Episode {episode}: Total Reward = {total_reward}, "
+        f"Best Reward = {best_reward}, Epsilon = {epsilon:.3f}"
     )
 
+    # save checkpoint every 10 episodes
     if episode % 10 == 0:
         with open("q_table.pkl", "wb") as f:
             pickle.dump(Q, f)
         print(f"Checkpoint saved at episode {episode}")
-
-env.close()
 
 with open("q_table.pkl", "wb") as f:
     pickle.dump(Q, f)
