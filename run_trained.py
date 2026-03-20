@@ -13,7 +13,7 @@ while not done:
     if state in q_table:
         action = q_table[state].index(max(q_table[state]))
     else:
-        action = 0  # default action if unseen state appears
+        action = 0  
 
     state, _, done = env.step(action)
 

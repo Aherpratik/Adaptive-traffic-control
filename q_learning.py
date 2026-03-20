@@ -6,7 +6,7 @@ env = TrafficEnv()
 Q = {}
 actions = [0, 1]
 
-episodes = 200
+episodes = 40
 alpha = 0.1
 gamma = 0.9
 
