@@ -1,14 +1,22 @@
-# 🚦 Adaptive Traffic Signal Control using Reinforcement Learning (SUMO + Q-Learning)
+# 🚦 Adaptive Traffic Signal Control using Reinforcement Learning (SUMO with Q-Learning and DQN)
 
-## 📌 Overview
+![Python](https://img.shields.io/badge/Python-3.10-blue)
+![RL](https://img.shields.io/badge/Reinforcement%20Learning-Q%20Learning%20%7C%20DQN-green)
+![SUMO](https://img.shields.io/badge/Simulator-SUMO-orange)
+![PyTorch](https://img.shields.io/badge/Framework-PyTorch-red)
 
-This project implements an **Adaptive Traffic Signal Control System** using **Reinforcement Learning (Q-Learning)** with the **SUMO (Simulation of Urban Mobility)** traffic simulator.
 
-The goal is to dynamically control traffic lights at an intersection to **reduce congestion and improve traffic flow** based on real-time traffic conditions.
+##  Overview
+
+This project implements an **Adaptive Traffic Signal Control System** using **Reinforcement Learning**, progressing from **Q-Learning (baseline)** to **Deep Q-Network (DQN)** with the **SUMO (Simulation of Urban Mobility)** traffic simulator.
+
+The system learns to dynamically control traffic lights based on real-time traffic conditions to **minimize congestion and optimize traffic flow**.
 
 ---
 
-## 🎯 Problem Statement
+Achieved ~75% improvement in traffic efficiency (from -764 to -185 reward)
+
+##  Problem Statement
 
 Traditional traffic lights operate on fixed timers, which:
 
@@ -24,7 +32,24 @@ This project solves the problem by using **Reinforcement Learning** to:
 
 ---
 
-## 🧠 Approach
+---
+
+##  Evolution of Approach
+
+This project was developed in two stages:
+
+### 1. Q-Learning (Tabular RL)
+- Discrete state representation
+- Limited scalability
+- Initial performance improvements
+
+### 2. Deep Q-Network (DQN)
+- Neural network-based Q-function approximation
+- Experience replay buffer
+- Target network stabilization
+- Improved learning efficiency and generalization
+
+Transitioning to DQN significantly improved performance and scalability of the system.
 
 ### Environment
 
@@ -37,8 +62,13 @@ This project solves the problem by using **Reinforcement Learning** to:
 The state is represented as:
 
 ```python
-(number_of_cars_lane1, lane2, lane3, lane4)
+(direction1_bucket, direction2_bucket, time_bucket)
+
 ```
+- Traffic is aggregated into two directions
+- Bucketed representation reduces state space
+- Time awareness improves learning stability
+
 
 This captures real-time queue length at each lane.
 
@@ -62,51 +92,80 @@ Internally mapped to SUMO phases:
 ### Reward Function
 
 ```python
-reward = -total_waiting
+reward = -(total_waiting) - 0.5 * imbalance - switch_penalty
 ```
 
 Where:
+- `total_waiting` → total halted vehicles
+- `imbalance` → difference between directions
+- `switch_penalty` → penalty for frequent signal switching
 
-* `total_waiting` = total number of halted vehicles
-
-Objective:
-👉 Minimize total waiting → maximize traffic flow
+Encourages:
+- lower congestion
+- balanced traffic flow
+- stable signal switching
 
 ---
 
 ### Algorithm
 
 * Q-Learning (Tabular RL)
+* DQN
 * ε-greedy policy for exploration
 * Bellman update rule
 
 ---
 
-## ⚙️ Tech Stack
+##  Tech Stack
 
 * Python
 * SUMO (Simulation of Urban Mobility)
 * TraCI (Traffic Control Interface)
-* Reinforcement Learning (Q-Learning)
+* Reinforcement Learning (Q-Learning, DQN)
+* PyTorch (for Deep Q-Network)
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 Adaptive-Traffic-Control/
 │
-├── traffic_env.py       # RL environment using SUMO + TraCI
-├── q_learning.py        # Training script
-├── run_trained.py       # Run trained model (visualization)
-├── configs/             # SUMO config files
-├── q_table.pkl          # Saved Q-table (generated after training)
+├── env/
+│ └── traffic_env.py # SUMO + TraCI environment
+│
+├── q_learning/
+│ ├── q_learning.py
+│ ├── run_trained.py
+│ └── q_table.pkl
+│
+├── dqn/
+│ ├── dqn_agent.py
+│ ├── replay_buffer.py
+│ ├── dqn_train.py
+│ ├── run_trained_dqn.py
+│ └── run_best_model.py
+│
+├── scripts/
+│ ├── test_env.py
+│ ├── run_simulation.py
+│ └── check_phases.py
+│
+├── configs/
+├── networks/
+├── routes/
+│
+├── results/
+│ ├── models/
+│ └── recordings/
+│
+├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## ▶️ How to Run
+##  How to Run
 
 ### 1. Install Dependencies
 
@@ -127,12 +186,40 @@ export PATH=$SUMO_HOME/bin:$PATH
 
 ### 2. Train the Model
 
+### Train Q-Learning
+
 ```bash
-python q_learning.py
+python q_learning/q_learning.py
+
+
 ```
 
 * Runs multiple episodes
 * Saves Q-table as `q_table.pkl`
+
+### Train DQN
+
+```bash
+python dqn/dqn_train.py
+```
+
+### Run Models
+
+* Run trained Q-Learning
+```bash
+python q_learning/run_trained.py
+```
+
+* Run trained DQN
+```bash
+python dqn/run_trained_dqn.py
+```
+
+* Run best DQN model
+```bash
+python dqn/run_best_model.py
+```
+
 
 ---
 
@@ -147,28 +234,33 @@ python run_trained.py
 
 ---
 
-## 📊 Results
+## Results
 
-* Initial reward: ~ -1200 to -1500
-* Best reward achieved: ~ **-764**
+### Q-Learning
+- Initial reward: ~ -1500
+- Best reward: ~ **-764**
 
-✅ Significant reduction in congestion
-✅ Improved traffic balancing
-✅ Adaptive signal switching behavior
+### DQN
+- Improved reward: ~ **-185 (best)**  
+- Stable range: ~ -185 to -250
+
+✅ Significant reduction in congestion  
+✅ Better traffic balancing  
+✅ More stable signal switching  
 
 ---
 
-## 🚀 Future Improvements
+## Future Improvements
 
 * Add **yellow signal transition** for realistic switching
 * Improve reward function (waiting time + imbalance)
-* Scale to **multi-intersection networks**
-* Upgrade to **Deep Q-Networks (DQN)**
+* Extend to **multi-intersection traffic** systems
+* Implement PPO / Actor-Critic methods
 * Real-time dashboard for visualization
 
 ---
 
-## 💡 Key Learnings
+## Key Learnings
 
 * Practical implementation of Reinforcement Learning
 * Integration of RL with real-world simulation (SUMO)
@@ -176,20 +268,26 @@ python run_trained.py
 * Handling environment stability and action design
 
 ---
+## Key Engineering Contributions
 
-## 📌 Conclusion
+- Designed modular RL architecture separating environment, Q-learning, and DQN components
+- Implemented experience replay and target network for stable DQN training
+- Optimized reward function for traffic balancing and reduced oscillations
+- Improved performance from -764 (Q-learning) to ~ -185 (DQN)
+
+## Conclusion
 
 This project demonstrates how Reinforcement Learning can be applied to real-world systems like traffic control to create **adaptive, efficient, and intelligent infrastructure solutions**.
 
 ---
 
-## 🙌 Acknowledgements
+##  Acknowledgements
 
 * Eclipse SUMO
 * Reinforcement Learning concepts from OpenAI Gym-style environments
 
 ---
 
-## 📬 Contact
+##  Contact
 
 Feel free to connect or reach out for collaboration!
