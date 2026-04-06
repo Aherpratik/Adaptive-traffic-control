@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.optim as optim
 import random
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 class DQN(nn.Module):
@@ -32,8 +35,8 @@ class DQNAgent:
 
         self.gamma = 0.99
         self.epsilon = 1.0
-        self.epsilon_min = 0.05
-        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.1
+        self.epsilon_decay = 0.999
 
         self.action_size = action_size
 
@@ -46,7 +49,7 @@ class DQNAgent:
             q_values = self.model(state)
         return q_values.argmax().item()
 
-    def train(self, batch, replay_buffer):
+    def train(self, batch):
         states, actions, rewards, next_states, dones = batch
 
         states = torch.FloatTensor(np.array(states)).to(self.device)

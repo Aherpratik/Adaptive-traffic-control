@@ -11,6 +11,8 @@ class TrafficEnv:
             binary,
             "-c",
             "configs/sim.sumocfg",
+            "--no-step-log",
+            "true",
             "--quit-on-end",
         ]
 
@@ -28,6 +30,7 @@ class TrafficEnv:
         self.max_steps = 100
 
         self.current_step = 0
+        self.time_since_last_switch = 0
         self.current_green = 0
 
     def reset(self):
@@ -39,6 +42,7 @@ class TrafficEnv:
         traci.start(self.sumoCmd)
 
         self.current_step = 0
+        self.time_since_last_switch = 0
         self.current_green = 0
 
         # start with phase 0 green
@@ -50,6 +54,12 @@ class TrafficEnv:
 
         # action is logical: 0 or 1
         target_green = action
+        switched = 1 if action != self.current_green else 0
+        if switched:
+            self.time_since_last_switch = 0
+        else:
+            self.time_since_last_switch += 1
+
         current_phase = self.green_phases[self.current_green]
         target_phase = self.green_phases[target_green]
 
@@ -74,11 +84,12 @@ class TrafficEnv:
 
         state = self._get_state()
 
-        total_waiting = sum(state)
-        imbalance = max(state) - min(state)
+        total_waiting = state[0] + state[1]
+        imbalance = abs(state[0] - state[1])
+        switch_penalty = switched
 
         # better reward: reduce total queue and balance traffic
-        reward = -total_waiting - imbalance
+        reward = -(total_waiting) - 0.2 * imbalance  # - 0.2 * switch_penalty
 
         self.current_step += 1
         done = self.current_step >= self.max_steps
@@ -103,7 +114,7 @@ class TrafficEnv:
             else:
                 return 2
 
-        time_bucket = min(self.current_step // 10, 2)
+        time_bucket = min(self.time_since_last_switch // 10, 2)
 
         return (bucket(direction1), bucket(direction2), time_bucket)
 
