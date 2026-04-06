@@ -110,6 +110,9 @@ Adaptive-Traffic-Control/
 
 ### 1. Install Dependencies
 
+* Install Python dependencies:
+  pip install -r requirements.txt
+
 * Install SUMO:
   https://www.eclipse.org/sumo/
 

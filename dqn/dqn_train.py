@@ -1,7 +1,7 @@
 import torch
-from traffic_env import TrafficEnv
-from dqn_agent import DQNAgent
-from replay_buffer import ReplayBuffer
+from env.traffic_env import TrafficEnv
+from dqn.dqn_agent import DQNAgent
+from dqn.replay_buffer import ReplayBuffer
 import numpy as np
 
 env = TrafficEnv()
